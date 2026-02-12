@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Year Calendar</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background: #f4f6f8;
+  }
+
+  h1 {
+    text-align: center;
+  }
+
+  .year-control {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  button {
+    padding: 6px 12px;
+    margin: 0 5px;
+    cursor: pointer;
+  }
+
+  .calendar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
+
+  .month {
+    background: white;
+    border-radius: 6px;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+
+  .month h3 {
+    text-align: center;
+    margin: 5px 0;
+  }
+
+  .days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    font-size: 12px;
+  }
+
+  .day-name {
+    font-weight: bold;
+    text-align: center;
+  }
+
+  .day {
+    padding: 6px;
+    text-align: center;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .day:hover {
+    background: #ddd;
+  }
+
+  .special {
+    background: #4caf50;
+    color: white;
+  }
+
+  .today {
+    border: 2px solid #2196f3;
+  }
+</style>
+</head>
+<body>
+
+<h1 id="yearTitle"></h1>
+
+<div class="year-control">
+  <button onclick="changeYear(-1)">◀ Previous</button>
+  <button onclick="changeYear(1)">Next ▶</button>
+</div>
+
+<div class="calendar" id="calendar"></div>
+
+<script>
+let currentYear = new Date().getFullYear();
+const months = [
+  "January","February","March","April","May","June",
+  "July","August","September","October","November","December"
+];
+
+function renderCalendar() {
+  document.getElementById("calendar").innerHTML = "";
+  document.getElementById("yearTitle").textContent = currentYear;
+
+  months.forEach((month, index) => {
+    const monthDiv = document.createElement("div");
+    monthDiv.className = "month";
+    monthDiv.innerHTML = `<h3>${month}</h3>`;
+
+    const daysGrid = document.createElement("div");
+    daysGrid.className = "days";
+
+    ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(d =>
+      daysGrid.innerHTML += `<div class="day-name">${d}</div>`
+    );
+
+    const firstDay = new Date(currentYear, index, 1).getDay();
+    const totalDays = new Date(currentYear, index + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) {
+      daysGrid.innerHTML += `<div></div>`;
+    }
+
+    for (let day = 1; day <= totalDays; day++) {
+      const dateKey = `${currentYear}-${index}-${day}`;
+      const isSpecial = localStorage.getItem(dateKey);
+
+      const div = document.createElement("div");
+      div.className = "day";
+      if (isSpecial) div.classList.add("special");
+
+      const today = new Date();
+      if (
+        day === today.getDate() &&
+        index === today.getMonth() &&
+        currentYear === today.getFullYear()
+      ) {
+        div.classList.add("today");
+      }
+
+      div.textContent = day;
+      div.onclick = () => toggleDay(div, dateKey);
+      daysGrid.appendChild(div);
+    }
+
+    monthDiv.appendChild(daysGrid);
+    document.getElementById("calendar").appendChild(monthDiv);
+  });
+}
+
+function toggleDay(element, key) {
+  if (element.classList.contains("special")) {
+    element.classList.remove("special");
+    localStorage.removeItem(key);
+  } else {
+    element.classList.add("special");
+    localStorage.setItem(key, "true");
+  }
+}
+
+function changeYear(value) {
+  currentYear += value;
+  renderCalendar();
+}
+
+// Auto update if year changes while page is open
+setInterval(() => {
+  const now = new Date();
+  if (now.getFullYear() !== currentYear) {
+    currentYear = now.getFullYear();
+    renderCalendar();
+  }
+}, 60000);
+
+renderCalendar();
+</script>
+
+</body>
+</html>

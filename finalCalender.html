@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Year Calendar</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  margin: 20px;
+}
+
+h1 {
+  text-align: center;
+}
+
+.controls {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.month {
+  background: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,.1);
+}
+
+.month h3 {
+  text-align: center;
+  margin: 5px 0;
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  font-size: 12px;
+}
+
+.day {
+  padding: 6px;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.day:hover {
+  background: #ddd;
+}
+
+.mark-red { background: #ffb3b3; }
+.mark-green { background: #b3ffcc; }
+.mark-blue { background: #b3d9ff; }
+
+.legend {
+  margin-top: 30px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.color-box {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  border-radius: 4px;
+}
+</style>
+</head>
+<body>
+
+<h1 id="yearTitle"></h1>
+
+<div class="controls">
+  <button onclick="changeYear(-1)">⬅ Previous Year</button>
+  <button onclick="changeYear(1)">Next Year ➡</button>
+</div>
+
+<div class="calendar" id="calendar"></div>
+
+<div class="legend">
+  <h3>Color Meaning</h3>
+  <div class="legend-item">
+    <div class="color-box" style="background:#ffb3b3"></div>
+    <input placeholder="Red meaning (e.g. Holiday)" id="redText">
+  </div>
+  <div class="legend-item">
+    <div class="color-box" style="background:#b3ffcc"></div>
+    <input placeholder="Green meaning (e.g. Event)" id="greenText">
+  </div>
+  <div class="legend-item">
+    <div class="color-box" style="background:#b3d9ff"></div>
+    <input placeholder="Blue meaning (e.g. Deadline)" id="blueText">
+  </div>
+</div>
+
+<script>
+let year = new Date().getFullYear();
+const calendarEl = document.getElementById("calendar");
+
+const colors = ["mark-red", "mark-green", "mark-blue"];
+
+function changeYear(step) {
+  year += step;
+  renderCalendar();
+}
+
+function renderCalendar() {
+  calendarEl.innerHTML = "";
+  document.getElementById("yearTitle").innerText = year;
+
+  for (let month = 0; month < 12; month++) {
+    const monthDiv = document.createElement("div");
+    monthDiv.className = "month";
+
+    const title = document.createElement("h3");
+    title.innerText = new Date(year, month).toLocaleString("default", { month: "long" });
+    monthDiv.appendChild(title);
+
+    const daysDiv = document.createElement("div");
+    daysDiv.className = "days";
+
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayDiv = document.createElement("div");
+      dayDiv.className = "day";
+      dayDiv.innerText = day;
+
+      const key = `${year}-${month}-${day}`;
+      const saved = localStorage.getItem(key);
+      if (saved) dayDiv.classList.add(saved);
+
+      dayDiv.onclick = () => toggleMark(dayDiv, key);
+      daysDiv.appendChild(dayDiv);
+    }
+
+    monthDiv.appendChild(daysDiv);
+    calendarEl.appendChild(monthDiv);
+  }
+}
+
+function toggleMark(el, key) {
+  let current = colors.find(c => el.classList.contains(c));
+  el.classList.remove(...colors);
+
+  if (!current) {
+    el.classList.add(colors[0]);
+    localStorage.setItem(key, colors[0]);
+  } else {
+    let next = colors[(colors.indexOf(current) + 1) % colors.length];
+    el.classList.add(next);
+    localStorage.setItem(key, next);
+  }
+}
+
+renderCalendar();
+</script>
+
+</body>
+</html>
